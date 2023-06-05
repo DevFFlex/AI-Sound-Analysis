@@ -1,0 +1,453 @@
+<GridLayout>:
+    canvas.before:
+        Color:
+            rgba: 1, 0, 0, 0
+        Line:
+            width: 2
+            rectangle: (self.x, self.y, self.width, self.height)
+
+<BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Line:
+            width: 1
+            rectangle: (self.x, self.y, self.width, self.height)
+<TextInput>:
+    halign:"center"
+    valign:"middle"
+    font_name: "arial"
+    multiline:False
+
+# canvas.before:
+#     Color:
+#         rgba: 0, 0, 0, 1
+#     Rectangle:
+#         pos: self.pos
+#         size: self.size
+
+
+<MainScreen>
+    graph_space:graph_space
+
+    dataset_inputclassname:dataset_inputclassname
+    dataset_textoutput:dataset_textoutput
+    dataset_btnstart:id_dataset_btnstart
+    dataset_inputdatacount:dataset_inputdatacount
+    dataset_switchsavedata:dataset_switchsavedata 
+
+    sa_btnrecord:sa_btnrecord
+    sa_btnplaylastsound:sa_btnplaylastsound
+    sa_gensound_freq:sa_gensound_freq
+    sa_gensound_sec:sa_gensound_sec
+    sa_gensound_btnplay:sa_gensound_btnplay
+    sa_filter_inputamp:sa_filter_inputamp
+    sa_btnsavedata:sa_btnsavedata
+    sa_btnloaddata:sa_btnloaddata
+
+    train_btntrain:train_btntrain
+    train_inputclasscount:train_inputclasscount
+    train_textoutput:train_textoutput
+    train_inputepoch:train_inputepoch
+
+    predict_btnpredict:predict_btnpredict
+    predict_textoutput:predict_textoutput
+
+    model_model:model_model
+    model_accuracy:model_accuracy
+
+    file_btnscandataset:filezone_btnscandataset
+    file_filecount:filezone_filecount
+    file_traincount:file_traincount
+    file_validcount:file_validcount
+    file_testcount:file_testcount
+    file_classcount:file_classcount
+    file_inputtrain_persen:file_inputtrain_persen
+
+
+    default_font_size: 24
+
+    #settingZone and graphZone
+    GridLayout:
+        cols:2
+        size: root.width , root.height
+
+
+        #Dataset-SoundAnalysis and Train-Predict
+        GridLayout:
+            cols:1
+            rows:3
+            
+            #Dataset-SoundAnalysis
+            GridLayout:
+                cols:2
+                size_hint:1.0,0.8         
+                #dataset
+                BoxLayout:
+                    orientation:"vertical"
+                    padding:[20,20]
+                    
+
+                    GridLayout:
+                        # orientation:"lr-tb"
+                        cols:2
+                        Label:
+                            text: "ClassName"
+                            size_hint: None, 1.0
+                            size:200,1
+                        TextInput:
+                            id:dataset_inputclassname
+                            multiline:False
+                            size_hint:0.1,1
+                            text_align:"center" 
+
+                    GridLayout:
+                        # orientation:"lr-tb"
+                        cols:2
+                        Label:
+                            text: "DataCount"
+                            size_hint: None, 1.0
+                            size:200,1
+                        TextInput:
+                            id:dataset_inputdatacount
+                            multiline:False
+                            size_hint:0.1,1
+                            text_align:"center" 
+
+
+                    AnchorLayout:
+                        anchor_x:"center"
+                        anchor_y:"center"
+
+                        Label:
+                            id:dataset_textoutput
+                            text:'text output'
+                    
+                    Button:
+                        id:id_dataset_btnstart
+                        text:"RecordData"
+                        # on_press:root.onRecord()
+                        background_color:1.0,0.2,0.2,1
+
+                    GridLayout:
+                        cols:2  
+                        Label:
+                            text:"save file"
+                        Switch:
+                            id:dataset_switchsavedata
+                            active:False
+
+    
+                    
+
+
+                #soundAnalysis    
+                BoxLayout:
+                    orientation:"vertical"
+                    padding:[20,20]
+
+                    GridLayout:
+                        cols:2
+                        
+                        Button:
+                            id:sa_btnrecord
+                            text:"Record"
+                        Button:
+                            id:sa_btnplaylastsound
+                            text:"Play"
+                    
+                    GridLayout:
+                        cols:1
+                        Label:
+                            text:'GenerateSound'
+                        
+                        GridLayout:
+                            cols:4
+
+                            Label:
+                                text:"Frequency"
+                            TextInput:
+                                id:sa_gensound_freq
+                            
+                            Label:
+                                text:"Duration"
+                            TextInput:
+                                id:sa_gensound_sec
+                        Button:
+                            id:sa_gensound_btnplay
+                            text:"Play Gen Sound"
+                    GridLayout:
+                        cols:1
+
+                        GridLayout:
+                            cols:2
+                            size_hint_y:None
+                            height:40
+
+                            Label:
+                                text:"Filter Frequency (dB) :"
+                            TextInput:
+                                id:sa_filter_inputamp
+                                multiline:False
+
+                    GridLayout:
+                        cols:2
+                        Button:
+                            id:sa_btnsavedata
+                            text:"Save To JSON"
+                        Button:
+                            id:sa_btnloaddata
+                            text:"Load To Data"
+
+                    
+
+
+                
+
+
+            #FileZone-Model Status            
+            GridLayout:
+                cols:2
+                size_hint:1.0,0.3
+                #filezone
+                BoxLayout:
+                    orientation:"vertical"
+                    BoxLayout:
+                        orientation:"horizontal"
+                        size_hint:None,None
+                        height:40
+                        width:250
+                        Label:
+                            text:"file in dataset folder : "
+                            size_hint_x:None
+                            width: self.texture_size[0] + 150
+                            markup:True
+                            shorten: True
+                            xalign:"center"
+                        Label:
+                            id:filezone_filecount
+                            text:"[b]None[/b]"
+                            xalign:"left"
+                            markup:True
+                            shorten: True
+                            font_size:20
+                            color:0,0.5,0.5,1
+                            size_hint_x: None
+                            width:50
+
+                    BoxLayout:
+                        orientation:"horizontal"
+                        BoxLayout:
+                            orientation:"horizontal"
+                            GridLayout:
+                                cols:2
+
+                                Label:
+                                    text:"train set : "
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    id:file_traincount
+                                    text:"None"
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    text:"valid set : "
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    id:file_validcount
+                                    text:"None"
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    text:"test set : "
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    id:file_testcount
+                                    text:"None"
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    text:"class count : "
+                                    markup:True
+                                    shorten: True
+
+                                Label:
+                                    id:file_classcount
+                                    text:"None"
+                                    markup:True
+                                    shorten: True
+
+
+
+                            BoxLayout:
+                                orientation:"vertical"
+                                BoxLayout:
+                                    size_hint_y:None
+                                    height:30
+                                    Label:
+                                        text:"train (%)"
+                                BoxLayout:
+                                    size_hint_y:None
+                                    height:30
+                                    TextInput:
+                                        id:file_inputtrain_persen
+                                        text:""
+                                
+                                Button:
+                                    id:filezone_btnscandataset
+                                    padding:[20,20]
+                                    text:"Process Dataset"
+                                    size_hint:1.0,0.2
+                                    # on_release: app.changeto_filemanagerScreen()
+                
+                #model status
+                BoxLayout:
+                    orientation:"vertical"                
+
+                    BoxLayout:
+                        orientation:"horizontal"
+                        Label:
+                            color:0.5,0.5,1,1
+                            text:"Model :"
+                            font_size:25
+                        Label:
+                            id:model_model
+                            xalign:"center"
+                            color:0,1,0,1
+                            text:"NULL"
+                            font_size:25
+
+                    BoxLayout:
+                        orientation:"horizontal"
+                        Label:
+                            color:0.5,0.5,1,1
+                            text:"Accuracy : "
+                            font_size:25
+                        Label:
+                            id:model_accuracy
+                            color:0,1,0,1
+                            text:"NULL"
+                            font_size:25
+
+
+            
+            #Train-Predict
+            BoxLayout:
+                orientation:"horizontal"
+
+                #Train
+                BoxLayout:
+                    orientation:"vertical"
+                    padding:[20,20]
+
+                    AnchorLayout:
+                        anchor_x: 'center'
+                        anchor_y: 'center'
+                        Label:
+                            text:"TrainZone"
+
+                    GridLayout:
+                        cols:2
+                        size_hint:(1.0,0.6)
+                        padding:[0,5]
+                        Label:
+                            text:"ClassCount : "
+                        TextInput:
+                            id:train_inputclasscount
+                            text:""
+                            multiline:False
+                    GridLayout:
+                        cols:2
+                        size_hint:(1.0,0.6)
+                        Label:
+                            text:"Epoch : "
+                        TextInput:
+                            id:train_inputepoch
+                            text:""
+                            multiline:False
+
+            
+
+                    Label:
+                        id:train_textoutput
+                        text:"train text output"
+                        font_size:25
+                    
+                    Button:
+                        id:train_btntrain
+                        text:"Train"
+
+                #Predict5
+                GridLayout:
+                    cols:1
+                    rows:3
+                    padding:[20,20]
+
+                    AnchorLayout:
+                        anchor_x: 'center'
+                        anchor_y: 'center'
+                        Label:
+                            text:"PredictZone"
+
+                    AnchorLayout:
+                        anchor_x: 'center'
+                        anchor_y: 'center'
+                        size_hint:1.0,None
+                        height: 200
+                        Label:
+                            id:predict_textoutput
+                            text:"Predict Text Output"
+                            markup:True
+                            font_size:25
+                            color:1,0,0,1
+                        
+                    
+                    Button:
+                        id:predict_btnpredict
+                        text:"Predict"
+
+        
+        
+
+        
+        
+        
+        BoxLayout:
+            orientation:"vertical"
+            BoxLayout:
+                orientation:"vertical"
+                BoxLayout:
+                    size_hint_y:None
+                    height:40
+                    BoxLayout:
+                        Label:
+                            text:"scale X"
+                        TextInput:
+                            text:""
+                    BoxLayout:
+                        Label:
+                            text:"scale Y"
+                        TextInput:
+                            text:""
+                BoxLayout:
+                    id:graph_space
+                    orientation: 'vertical'
+                
+            
+            BoxLayout:
+                orientation:"vertical"
+
+                Label:
+                    text:"dsads"
+                Label:
+                    text:"dsaduytus"
+            
