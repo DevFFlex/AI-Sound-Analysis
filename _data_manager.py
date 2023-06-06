@@ -111,7 +111,10 @@ class DataManager:
         print(f'#validation = {X_val.shape[0]}')
         print(f'#test = {X_test.shape[0]}')
 
-
+        #normalize
+        X_train /= 1000
+        X_val /= 1000
+        X_test /= 1000
         return (X_train,y_train,X_val,y_val,X_test,y_test,classname_count)
 
     def isFile(self,path):

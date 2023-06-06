@@ -191,6 +191,10 @@ class MainScreen(Screen):
     file_inputtrain_persen = ObjectProperty(None)
 
     graph_space = ObjectProperty(None)
+    graph_inputMinScaleX = ObjectProperty(None)
+    graph_inputMaxScaleX = ObjectProperty(None)
+    graph_inputMinScaleY = ObjectProperty(None)
+    graph_inputMaxScaleY = ObjectProperty(None)
 
     graph = None
     graphLayout = []
@@ -215,6 +219,9 @@ class MainScreen(Screen):
         self.sa_btnplaylastsound.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickPlayLastRecord,args=(btn,)).start())
         self.sa_gensound_btnplay.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickPlayGenSound,args=(btn,)).start())
         
+    
+
+
         def onDialog(btn):
             dialog = MyDialog()
             dialog.open()
@@ -263,8 +270,34 @@ class MainScreen(Screen):
 
         XLABEL = 'Frequency (Hz)'
         YLABEL = 'Amplitude (db)'
-        GRAPH_X_RANGE = (0,3000)
-        GRAPH_Y_RANGE = (0,100)
+        GRAPH_X_RANGE = [0,3000]
+        GRAPH_Y_RANGE = [0,100]
+
+        xminrange_text = self.graph_inputMinScaleX.text
+        xmaxrange_text = self.graph_inputMaxScaleX.text
+        yminrange_text = self.graph_inputMinScaleY.text
+        ymaxrange_text = self.graph_inputMaxScaleY.text
+
+        if xminrange_text != "" and xminrange_text.isdigit():
+            GRAPH_X_RANGE[0] = int(xminrange_text)
+        
+        if xmaxrange_text != "" and xmaxrange_text.isdigit():
+            GRAPH_X_RANGE[1] = int(xmaxrange_text)
+        
+        if yminrange_text != "" and yminrange_text.isdigit():
+            GRAPH_Y_RANGE[0] = int(yminrange_text)
+        
+        if ymaxrange_text != "" and ymaxrange_text.isdigit():
+            GRAPH_Y_RANGE[1] = int(ymaxrange_text)
+
+        self.graph_inputMinScaleX.text = str(GRAPH_X_RANGE[0])
+        self.graph_inputMaxScaleX.text = str(GRAPH_X_RANGE[1])
+        self.graph_inputMinScaleY.text = str(GRAPH_Y_RANGE[0])
+        self.graph_inputMaxScaleY.text = str(GRAPH_Y_RANGE[1])
+        
+
+
+        
         
         
         self.graph_space.clear_widgets()
@@ -402,7 +435,6 @@ class MainScreen(Screen):
         print(text)
         self.predict_textoutput.text = text
 
-    
     def soundAnalys_onClickRecord(self,btn):
         threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
         freq,amp = self.sound_io.process()
@@ -434,6 +466,8 @@ class MainScreen(Screen):
 
         x_train,y_train,x_val,y_val,x_test,y_test,classname_count = self.ai.getSplitDataset(self.ai.getDataFileCount(),int(train_persen_text))
         self.variable.DataSet.set(x_train,y_train,x_val,y_val,x_test,y_test)
+
+        print(x_train)
 
         if not self.variable.DataSet.isData():
             return

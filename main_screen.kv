@@ -28,7 +28,6 @@
 
 
 <MainScreen>
-    graph_space:graph_space
 
     dataset_inputclassname:dataset_inputclassname
     dataset_textoutput:dataset_textoutput
@@ -63,6 +62,12 @@
     file_testcount:file_testcount
     file_classcount:file_classcount
     file_inputtrain_persen:file_inputtrain_persen
+
+    graph_space:graph_space
+    graph_inputMinScaleX:graph_inputMinScaleX
+    graph_inputMaxScaleX:graph_inputMaxScaleX
+    graph_inputMinScaleY:graph_inputMinScaleY
+    graph_inputMaxScaleY:graph_inputMaxScaleY
 
 
     default_font_size: 24
@@ -430,13 +435,27 @@
                     height:40
                     BoxLayout:
                         Label:
-                            text:"scale X"
+                            text:"MinScale X"
                         TextInput:
+                            id:graph_inputMinScaleX
                             text:""
                     BoxLayout:
                         Label:
-                            text:"scale Y"
+                            text:"MaxScale X "
                         TextInput:
+                            id:graph_inputMaxScaleX
+                            text:""
+                    BoxLayout:
+                        Label:
+                            text:"MinScale Y"
+                        TextInput:
+                            id:graph_inputMinScaleY
+                            text:""
+                    BoxLayout:
+                        Label:
+                            text:"MaxScale Y"
+                        TextInput:
+                            id:graph_inputMaxScaleY
                             text:""
                 BoxLayout:
                     id:graph_space
@@ -447,7 +466,7 @@
                 orientation:"vertical"
 
                 Label:
-                    text:"dsads"
+                    text:""
                 Label:
-                    text:"dsaduytus"
+                    text:""
             
