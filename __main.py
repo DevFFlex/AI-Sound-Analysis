@@ -89,6 +89,7 @@ class MainScreen(Screen):
 
     predict_btnpredict = ObjectProperty(None)
     predict_textoutput = ObjectProperty(None)
+    predict_InputloopPredict = ObjectProperty(None)
 
     model_model = ObjectProperty(None)
     model_accuracy = ObjectProperty(None)
@@ -334,17 +335,25 @@ class MainScreen(Screen):
         self.train_textoutput.text = 'Success, Train Model'
 
     def predict_onbtnclick(self,btn):
-        freq,amp = self.sound_io.process()
+        pipt = self.predict_InputloopPredict.text
+        if pipt.text == "" or pipt.isdigit():
+            i = 1
+        else:
+            i = int(pipt)
 
-        Clock.schedule_once(lambda argment : self.threadPlotGraph(argment,(freq,amp)), 0)
 
-        classname,confidence = self.ai.predict(amplitude=amp)
+        for x in range(i):
+            freq,amp = self.sound_io.process()
 
-        suretext  = "unsure" if confidence < 0.995 else "i'm sure"
-        text = f"classname : {classname}\nconfidence = {'%.2f' % (confidence * 100)}%\n{suretext}"
+            Clock.schedule_once(lambda argment : self.threadPlotGraph(argment,(freq,amp)), 0)
 
-        print(text)
-        self.predict_textoutput.text = text
+            classname,confidence = self.ai.predict(amplitude=amp)
+
+            suretext  = "unsure" if confidence < 0.995 else "i'm sure"
+            text = f"classname : {classname}\nconfidence = {'%.2f' % (confidence * 100)}%\n{suretext}"
+
+            print(text)
+            self.predict_textoutput.text = text
 
     def soundAnalys_onClickRecord(self,btn):
         threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
