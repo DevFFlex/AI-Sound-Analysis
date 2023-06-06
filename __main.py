@@ -336,12 +336,12 @@ class MainScreen(Screen):
 
     def predict_onbtnclick(self,btn):
         pipt = self.predict_InputloopPredict.text
-        if pipt.text == "" or pipt.isdigit():
+        if pipt == "" or not pipt.isdigit():
             i = 1
         else:
             i = int(pipt)
 
-
+        print(i)
         for x in range(i):
             freq,amp = self.sound_io.process()
 
@@ -400,7 +400,7 @@ class MainScreen(Screen):
 
         
         def setTextInputClassName(dt):
-            self.train_inputclasscount.text = str(classname_count)
+            self.train_inputclasscount.text = str(len(classname_count))
         Clock.schedule_once(setTextInputClassName )
 
 
