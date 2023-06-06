@@ -11,6 +11,8 @@ import random
 import datetime
 import easygui
 import os
+from tensorflow import keras
+import easygui
 
 import kivy
 from kivy.app import App
@@ -62,7 +64,7 @@ class FileManagerScreen(Screen):
     def __init__(self,screen_name, **kw):
         super().__init__(**kw)
         self.name = screen_name
-
+        
     
     
 
@@ -72,6 +74,7 @@ class MainScreen(Screen):
     dataset_btnstart = ObjectProperty(None)
     dataset_inputdatacount = ObjectProperty(None)
     dataset_switchsavedata = ObjectProperty(None)
+    dataset_switchautotrain = ObjectProperty(None)
 
     sa_btnrecord = ObjectProperty(None)
     sa_btnplaylastsound = ObjectProperty(None)
@@ -81,6 +84,7 @@ class MainScreen(Screen):
     sa_filter_inputamp = ObjectProperty(None)
     sa_btnsavedata = ObjectProperty(None)
     sa_btnloaddata = ObjectProperty(None)
+    sa_filter_inputspace = ObjectProperty(None)
 
     train_btntrain = ObjectProperty(None)
     train_inputclasscount = ObjectProperty(None)
@@ -88,11 +92,13 @@ class MainScreen(Screen):
     train_inputepoch = ObjectProperty(None)
 
     predict_btnpredict = ObjectProperty(None)
-    predict_textoutput = ObjectProperty(None)
-    predict_InputloopPredict = ObjectProperty(None)
+    predict_class = ObjectProperty(None)
+    predict_maxconfi = ObjectProperty(None)
+    predict_swautopredict = ObjectProperty(None)
 
     model_model = ObjectProperty(None)
-    model_accuracy = ObjectProperty(None)
+    model_testaccuracy = ObjectProperty(None)
+    model_testloss = ObjectProperty(None)
 
     file_btnscandataset = ObjectProperty(None)
     file_filecount = ObjectProperty(None)
@@ -101,16 +107,23 @@ class MainScreen(Screen):
     file_testcount = ObjectProperty(None)
     file_classcount = ObjectProperty(None)
     file_inputtrain_persen = ObjectProperty(None)
+    file_btnopenfolder = ObjectProperty(None)
 
     graph_space = ObjectProperty(None)
+    graph_spaceOne = ObjectProperty(None)
     graph_inputMinScaleX = ObjectProperty(None)
     graph_inputMaxScaleX = ObjectProperty(None)
     graph_inputMinScaleY = ObjectProperty(None)
     graph_inputMaxScaleY = ObjectProperty(None)
 
-    graph = None
-    graphLayout = []
-    graphPoint = []
+    output = ObjectProperty(None)
+
+
+    def trainCallbackFunction(self, epoch, logs):
+        loss = logs['loss']
+        accuracy = logs['accuracy']
+        
+        self.train_textoutput.text = f"epoch {epoch} | Accuracy = {'%.2f' % accuracy} | loss = {'%.2f' % loss}"
 
     
 
@@ -120,12 +133,13 @@ class MainScreen(Screen):
 
         self.variable = Variable()
         self.sound_io = SoundIO()
-        self.ai = AI()
+        self.ai = AI(self)
 
         self.dataset_btnstart.bind(on_press=lambda btn: threading.Thread(target=self.dataset_onbtnstart,args=(btn,)).start())  
         self.train_btntrain.bind(on_press = lambda btn : threading.Thread(target=self.train_onbtnclick,args=(btn,)).start())
         self.predict_btnpredict.bind(on_press = lambda btn : threading.Thread(target=self.predict_onbtnclick,args=(btn,)).start())
         self.file_btnscandataset.bind(on_press = lambda btn : threading.Thread(target=self.filezone_onClickProcessDataset,args=(btn,)).start())
+        self.file_btnopenfolder.bind(on_press = lambda btn : easygui.fileopenbox())
 
         self.sa_btnrecord.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickRecord,args=(btn,)).start())
         self.sa_btnplaylastsound.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickPlayLastRecord,args=(btn,)).start())
@@ -142,15 +156,28 @@ class MainScreen(Screen):
 
 
         def update_label(dt):
-
-            self.model_model.text = "Has Model" if self.variable.MODEL != None else "No Model"
             
-            if self.variable.Accuracy != None:
-                self.model_accuracy.text = str("%.2f" % (self.variable.Accuracy * 100) + "%")
+            self.model_model.color = [0,1,0,1] if self.variable.MODEL != None else [1,0,0,1]
+            self.model_model.text = "Model Is Ready" if self.variable.MODEL != None else "No Model"
+            
+            if self.variable.TestAccuracy != None and self.variable.TestLoss != None:
+                self.model_testaccuracy.text = str("%.2f" % (self.variable.TestAccuracy * 100) + "%")
+                self.model_testloss.text = str("%.2f" % (self.variable.TestLoss * 100) + "%")
 
             self.file_filecount.text = str(self.ai.getDataFileCount())
 
             self.ai.createBaseResource()
+
+            if self.variable.DataSet.isData():
+                self.train_btntrain.disabled = False
+            else:
+                self.train_btntrain.disabled = True
+
+
+            if self.ai.isModel():
+                self.predict_btnpredict.disabled = False
+            else:
+                self.predict_btnpredict.disabled = True
 
 
         Clock.schedule_interval(lambda dt: update_label(dt,), 1)
@@ -176,7 +203,12 @@ class MainScreen(Screen):
     def show_dropdown(self, instance):
         self.dropdown.open(instance)"""
 
-    def plotGraph(self,data,filterAMP):
+    def stop_autopredict(self,btn):
+        self.variable.status_loop_autopredict = False    
+
+    def plotGraph(self,freqamp,filterAMP):
+        freq,amp = freqamp
+        data = list(zip(freq, amp))
         
         DATA_FORMATT = "((1,2),(5,6),...)"
 
@@ -206,29 +238,22 @@ class MainScreen(Screen):
         self.graph_inputMaxScaleX.text = str(GRAPH_X_RANGE[1])
         self.graph_inputMinScaleY.text = str(GRAPH_Y_RANGE[0])
         self.graph_inputMaxScaleY.text = str(GRAPH_Y_RANGE[1])
-        
-
 
         
         
         
         self.graph_space.clear_widgets()
         
-        if len(self.graphPoint) > 1:
-            self.graphPoint.remove(self.graphPoint[0])
-
-        self.graphPoint.append(data)
-
-        time.sleep(0.1)
+        self.variable.graphHistory.addPoint(data)
 
         self.graph = Graph(xlabel=XLABEL, ylabel=YLABEL, x_ticks_minor=5,
-                      x_ticks_major=200, y_ticks_major=10,
+                      x_ticks_major=(GRAPH_X_RANGE[1] - GRAPH_X_RANGE[0]) / 15, y_ticks_major=(GRAPH_Y_RANGE[1] - GRAPH_Y_RANGE[0]) / 10,
                       y_grid_label=True, x_grid_label=True, padding=0,
                       x_grid=True, y_grid=True, xmin=GRAPH_X_RANGE[0], xmax=GRAPH_X_RANGE[1], ymin=GRAPH_Y_RANGE[0], ymax=GRAPH_Y_RANGE[1])
         
         i = 0
-        for points_item in self.graphPoint:
-            new_plot = LinePlot(color= [1, 0, 0, 1] if i == 0 else [0, 1, 0, 1])
+        for points_item in self.variable.graphHistory.getGraphPoint():
+            new_plot = LinePlot(color= self.variable.graphHistory.GRAPH_COLOR[i])
             new_plot.points = points_item
             self.graph.add_plot(new_plot)
             i+=1
@@ -239,20 +264,47 @@ class MainScreen(Screen):
             self.graph.add_plot(new_plot)
         
         self.graph_space.add_widget(self.graph)
-        self.graphLayout.append(self.graph)
+
+        self.output.text = f'vdfc = {self.variable.datafilecount}   ai = {self.ai.getDataFileCount()}'
+        if self.variable.datafilecount != self.ai.getDataFileCount():
+            self.variable.datafilecount = self.ai.getDataFileCount()
+            class0,class1 = self.ai.getAverageClass()
+
+            data_graphPlot_class0 = list(zip(freq, class0))
+            data_graphPlot_class1 = list(zip(freq, class1))
+
+            self.graph_spaceOne.clear_widgets()
+            graph2 = Graph(xlabel=XLABEL, ylabel=YLABEL, x_ticks_minor=5,
+                            x_ticks_major=(GRAPH_X_RANGE[1] - GRAPH_X_RANGE[0]) / 15, y_ticks_major=(GRAPH_Y_RANGE[1] - GRAPH_Y_RANGE[0]) / 10,
+                            y_grid_label=True, x_grid_label=True, padding=0,
+                            x_grid=True, y_grid=True, xmin=GRAPH_X_RANGE[0], xmax=GRAPH_X_RANGE[1], ymin=GRAPH_Y_RANGE[0], ymax=GRAPH_Y_RANGE[1])
+
+        
+            new_plot = LinePlot(color= [1, 1, 0, 1])
+            new_plot.points = data_graphPlot_class0
+            graph2.add_plot(new_plot) 
+
+            new_plot = LinePlot(color= [0, 1, 1, 1])
+            new_plot.points = data_graphPlot_class1
+            graph2.add_plot(new_plot)  
+
+            self.graph_spaceOne.add_widget(graph2)
+        
+        
         
     def threadPlotGraph(self,arg,datalist):
         filterAMP = self.sa_filter_inputamp.text
 
         freq,amp = datalist
 
+        freq = numpy.array(freq)
+        amp = numpy.array(amp)
+
         if filterAMP != "" and filterAMP.isdigit():
             condition = amp > float(filterAMP)
             amp[~condition] = int(filterAMP) + 0.5
 
-        data_graphPlot = list(zip(freq, amp))
-
-        self.plotGraph(data_graphPlot,filterAMP)
+        self.plotGraph((freq,amp),filterAMP)
     
     def __threadCooldownText(self,btn,timecount = 2):
         
@@ -280,8 +332,9 @@ class MainScreen(Screen):
         else:
             return
             
-
-        for x in range(datacount):
+        i = 0
+        self.variable.status_loop_autodatasetrecord = True
+        while self.variable.status_loop_autodatasetrecord:
             self.dataset_btnstart.text = "Recording......."
             threading.Thread(target=self.__threadCooldownText,args=(self.dataset_btnstart,)).start()
             
@@ -294,14 +347,88 @@ class MainScreen(Screen):
 
             if self.dataset_switchsavedata.active and self.dataset_inputclassname.text != "" and self.dataset_inputclassname.text.isdigit():
                 self.ai.addData({
-                "frequency":freq.tolist(),
-                "amplitude":amp.tolist(),
+                "frequency":freq,
+                "amplitude":amp,
                 "size_frequency":len(freq),
                 "size_amplitude":len(amp),
                 "classname":int(self.dataset_inputclassname.text)
             })
 
-            self.dataset_textoutput.text = "data : " + str(x + 1)
+            self.dataset_textoutput.text = "data : " + str(i + 1)
+            self.variable.status_loop_autodatasetrecord = self.dataset_switchsavedata.active
+
+
+            i += 1
+
+            if i >= datacount:
+                self.variable.status_loop_autodatasetrecord = False
+
+        if self.dataset_switchautotrain.active:
+            self.filezone_onClickProcessDataset(self.file_btnscandataset)
+            self.train_onbtnclick(self.train_btntrain) 
+            
+
+    def soundAnalys_onClickRecord(self,btn):
+        threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
+        space = 50 if self.sa_filter_inputspace.text == "" or not self.sa_filter_inputspace.text.isdigit() else int(self.sa_filter_inputspace.text)
+        self.sound_io.soundOption.FREQ_SPACE = space
+        freq,amp = self.sound_io.process()
+        
+
+
+        Clock.schedule_once(lambda argment : self.threadPlotGraph(argment,(freq,amp)), 0)
+
+    def soundAnalys_onClickPlayLastRecord(self,btn):
+        threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
+        self.sound_io.playSound()
+
+    def soundAnalys_onClickPlayGenSound(self,btn):
+        freq_gen = self.sa_gensound_freq.text
+        sec_gen  = self.sa_gensound_sec.text
+
+        if freq_gen == "" or not freq_gen.isdigit() or sec_gen == "" or not freq_gen.isdigit():
+            return
+
+        freq = int(freq_gen)
+        sec  = int(sec_gen)
+
+        self.sound_io.genSound(freq=freq,durationIn=sec)
+
+    def soundAnalys_onClickSave(self,btn):
+
+        self.ai.addData({
+                "frequency":freq,
+                "amplitude":amp,
+                "size_frequency":len(freq),
+                "size_amplitude":len(amp),
+                "classname":int(self.dataset_inputclassname.text)
+        })
+
+    def filezone_onClickProcessDataset(self,btn):
+
+        train_persen_text = self.file_inputtrain_persen.text
+        if train_persen_text == "" or not train_persen_text.isdigit():
+            return 
+
+        x_train,y_train,x_val,y_val,x_test,y_test = self.ai.getSplitDataset(self.ai.getDataFileCount(),int(train_persen_text))
+        self.variable.DataSet.set(x_train,y_train,x_val,y_val,x_test,y_test)
+
+
+        if not self.variable.DataSet.isData():
+            return
+        
+        self.variable.DataSet.shape()
+
+        self.file_traincount.text = str(x_train.shape[0])
+        self.file_validcount.text = str(x_val.shape[0])
+        self.file_testcount.text = str(x_test.shape[0])
+        self.file_classcount.text = str(self.ai.dataother.getClassCount())
+
+
+        
+        def setTextInputClassName(dt):
+            self.train_inputclasscount.text = str(self.ai.dataother.getClassCount())
+        Clock.schedule_once(setTextInputClassName )
 
     def train_onbtnclick(self,btn):
         
@@ -324,85 +451,37 @@ class MainScreen(Screen):
         epoch = int(class_epoch_text)
  
 
-        self.train_textoutput.text = 'Ok, Training....'
+        self.train_textoutput.text = 'Training....'
 
-        self.variable.MODEL = self.ai.train(self.variable.DataSet.x_train,self.variable.DataSet.y_train,class_count,epoch)
+        self.variable.MODEL = self.ai.train(self.variable.DataSet.x_train,self.variable.DataSet.y_train,self.variable.DataSet.x_valid,self.variable.DataSet.y_valid,class_count,epoch)
 
         accuracy,loss = self.ai.getAccuracy(self.variable.DataSet.x_test,self.variable.DataSet.y_test)
-        self.variable.Accuracy = accuracy
+        self.variable.TestAccuracy = accuracy
+        self.variable.TestLoss = loss
 
 
-        self.train_textoutput.text = 'Success, Train Model'
+        self.train_textoutput.text = 'Success'
 
     def predict_onbtnclick(self,btn):
-        pipt = self.predict_InputloopPredict.text
-        if pipt == "" or not pipt.isdigit():
-            i = 1
-        else:
-            i = int(pipt)
-
-        print(i)
-        for x in range(i):
+        
+        self.variable.status_loop_autopredict = True
+        self.predict_btnpredict.disabled = True
+        while self.variable.status_loop_autopredict:
             freq,amp = self.sound_io.process()
 
             Clock.schedule_once(lambda argment : self.threadPlotGraph(argment,(freq,amp)), 0)
 
-            classname,confidence = self.ai.predict(amplitude=amp)
+            classname,max_con = self.ai.predict(amplitude=amp)
 
-            suretext  = "unsure" if confidence < 0.995 else "i'm sure"
-            text = f"classname : {classname}\nconfidence = {'%.2f' % (confidence * 100)}%\n{suretext}"
+            self.predict_class.color = self.variable.color_class_list[classname]
+            self.predict_maxconfi.color = self.variable.color_class_list[classname]
 
-            print(text)
-            self.predict_textoutput.text = text
+            self.predict_class.text = str(classname)
+            self.predict_maxconfi.text = str('%.2f' % (max_con * 100)) + "%"
 
-    def soundAnalys_onClickRecord(self,btn):
-        threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
-        freq,amp = self.sound_io.process()
+            self.variable.status_loop_autopredict = self.predict_swautopredict.active
 
-        Clock.schedule_once(lambda argment : self.threadPlotGraph(argment,(freq,amp)), 0)
-
-    def soundAnalys_onClickPlayLastRecord(self,btn):
-        print("on soundAnalys_onClickPlayLastRecord")
-        threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
-        self.sound_io.playSound()
-
-    def soundAnalys_onClickPlayGenSound(self,btn):
-        freq_gen = self.sa_gensound_freq.text
-        sec_gen  = self.sa_gensound_sec.text
-
-        if freq_gen == "" or not freq_gen.isdigit() or sec_gen == "" or not freq_gen.isdigit():
-            return
-
-        freq = int(freq_gen)
-        sec  = int(sec_gen)
-
-        self.sound_io.genSound(freq=freq,durationIn=sec)
-
-    def filezone_onClickProcessDataset(self,btn):
-
-        train_persen_text = self.file_inputtrain_persen.text
-        if train_persen_text == "" or not train_persen_text.isdigit():
-            return
-
-        x_train,y_train,x_val,y_val,x_test,y_test,classname_count = self.ai.getSplitDataset(self.ai.getDataFileCount(),int(train_persen_text))
-        self.variable.DataSet.set(x_train,y_train,x_val,y_val,x_test,y_test)
-
-        print(x_train)
-
-        if not self.variable.DataSet.isData():
-            return
-
-        self.file_traincount.text = str(x_train.shape[0])
-        self.file_validcount.text = str(x_val.shape[0])
-        self.file_testcount.text = str(x_test.shape[0])
-        self.file_classcount.text = str(len(classname_count))
-
-
-        
-        def setTextInputClassName(dt):
-            self.train_inputclasscount.text = str(len(classname_count))
-        Clock.schedule_once(setTextInputClassName )
-
+        self.predict_btnpredict.disabled = False
 
 
 

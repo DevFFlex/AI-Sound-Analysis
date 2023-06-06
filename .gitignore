@@ -1,7 +1,8 @@
 /venv
 /.vscode
 /__pycache__
-/tone
+/audio_output
 /dataset
 /datasetOld
+/dataset__
 

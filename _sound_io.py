@@ -10,18 +10,33 @@ import sounddevice as sd
 import soundfile as sf
 import time
 
+class SoundOption:
+    def __init__(self) -> None:
+        self.FREQ_MIN   = None
+        self.FREQ_MAX   = None
+        self.FREQ_SPACE = None
+        self.AMPLITUDE_FILTER = None
+
 class SoundIO:
     def __init__(self):
+
+        self.soundOption = SoundOption()
+        self.soundOption.FREQ_MIN = 0
+        self.soundOption.FREQ_MAX = 3000
+        self.soundOption.FREQ_SPACE = 50
+        self.soundOption.AMPLITUDE_FILTER = 0
+
         self.CHUNK = 1024
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 44100
         self.RECORD_SECONDS = 2
 
-        self.SOUND_PATH = os.path.join(os.getcwd(),"tone/output.wav")
+        self.FRAME_LIST = []
 
-        if not os.path.isdir(os.path.join(os.getcwd(),"tone")):
-            os.mkdir("tone")
+        self.SOUND_PATH = os.path.join(os.getcwd(),"audio_output/output.wav")
+        if not os.path.isdir(os.path.join(os.getcwd(),"audio_output")):
+            os.mkdir("audio_output")
 
     def list_audio_devices(self):
         audio = pyaudio.PyAudio()
@@ -57,78 +72,92 @@ class SoundIO:
         plt.show()
 
 
-    def record(self,device_index = 1):
-        audio = pyaudio.PyAudio()
+    def __Record(self,device_index = 1):
+        
+        self.AUDIO = pyaudio.PyAudio()
 
-        # for element in self.list_audio_devices():
-        #     print(type(element))
-    
-        stream = audio.open(format=self.FORMAT, channels=self.CHANNELS,
+        stream = self.AUDIO.open(format=self.FORMAT, channels=self.CHANNELS,
                             rate=self.RATE, input=True,
                             frames_per_buffer=self.CHUNK,
                             input_device_index=device_index)
 
         print("Recording...")
 
-        frames = []
-
+        self.FRAME_LIST.clear()
         for i in range(0, int(self.RATE / self.CHUNK * self.RECORD_SECONDS)):
             data = stream.read(self.CHUNK)
-            frames.append(data)
+            self.FRAME_LIST.append(data)
 
         print("Finished recording.")
 
         stream.stop_stream()
         stream.close()
-        audio.terminate()
+        self.AUDIO.terminate()
 
+        self.__Save()
+
+
+    def __Save(self):
         wave_file = wave.open(self.SOUND_PATH, 'wb')
         wave_file.setnchannels(self.CHANNELS)
-        wave_file.setsampwidth(audio.get_sample_size(self.FORMAT))
+        wave_file.setsampwidth(self.AUDIO.get_sample_size(self.FORMAT))
         wave_file.setframerate(self.RATE)
-        wave_file.writeframes(b''.join(frames))
+        wave_file.writeframes(b''.join(self.FRAME_LIST))
         wave_file.close()
+        
+    def __GetFFT(self,frames = None):
+        if frames == None:
+            frames = self.FRAME_LIST
 
-        return frames
-
-    
-    def GetFFT(self,frames):
         audio_data = io.BytesIO()
         for frame in frames:
             audio_data.write(frame)
         audio_data.seek(0)
 
         signal = np.frombuffer(audio_data.read(), dtype=np.int16)
-        
         signal = signal / 2.0**15
-
         signal = signal[0:]
 
-        fft_spectrum = np.fft.fft(signal)
+        amplitude = np.fft.fft(signal)
+        frequency = np.fft.fftfreq(len(signal), d=1/self.RATE)
 
-        frequencies = np.fft.fftfreq(len(signal), d=1/self.RATE)
+        # fft_spectrum_abs = np.abs(amplitude)
 
+        return (frequency,amplitude)
 
-        fft_spectrum_abs = np.abs(fft_spectrum)
+    def __Filter(self,frequency,amplitude):
 
-        freqlist = []
-        fft_spectrum_list = []
+        FREQ_MIN = self.soundOption.FREQ_MIN
+        FREQ_MAX = self.soundOption.FREQ_MAX
+        FREQ_SPACE = self.soundOption.FREQ_SPACE
 
-        for i,f in enumerate(fft_spectrum_abs):
-            if i % 50 == 0 and np.round(frequencies[i]) < 3000 and i != 0:
-                freq = np.round(frequencies[i],1)
+        amplitude_abs = np.abs(amplitude)
+
+        frequency_list = []
+        amplitude_list = []
+
+        for i,f in enumerate(amplitude_abs):
+            if i % FREQ_SPACE == FREQ_MIN and np.round(frequency[i]) < FREQ_MAX and i != 0:
+                freq = np.round(frequency[i],1)
                 amp = np.round(f)
-                # print('frequency = {} Hz with amplitude {} '.format(freq,amp))
-                freqlist.append(freq)
-                fft_spectrum_list.append(amp)
+                frequency_list.append(freq)
+                amplitude_list.append(amp)
+
+
+                # print(f"freq {freq}\tampli = {amp}")
 
             if i > 40000:
                 break
 
-        return [freqlist,fft_spectrum_list]
-    
+        # frequency_np = np.array(frequency_list)
+        # amplitude_np = np.array(amplitude_list)
 
-    def GetFFTWithSoundFile(self,filename = None,display = False):
+        # return [frequency_np,amplitude_np]
+        return [frequency_list,amplitude_list]
+
+
+    
+    def GetFFTWithSoundFile(self,filename = None):
         if filename == None:
             return
         
@@ -136,38 +165,13 @@ class SoundIO:
 
         signal = np.frombuffer(wav_file.readframes(-1), dtype=np.int16)
 
-        # print(wav_file.getsampwidth())
-
-        fft_result = np.fft.fft(signal)
-
-        frequencies_float = np.fft.fftfreq(len(signal), d=1/wav_file.getframerate())
-        frequencies_int = frequencies_float.astype(int)
-
-        # print(frequencies_int.dtype)
-        if display:
-            plt.plot(frequencies_int, np.abs(fft_result))
-            plt.xlabel('Frequency (Hz)')
-            plt.ylabel('Amplitude')
-            plt.show()
+        fft_spectrum = np.fft.fft(signal)
+        frequencies = np.fft.fftfreq(len(signal), d=1/wav_file.getframerate())
+        # frequencies = frequencies_float.astype(int)
 
         wav_file.close()
 
-        return [frequencies_float,fft_result]
-
-
-    def process(self,device_index = 1):
-        frames = self.record(device_index=device_index)
-        freq,amp = self.GetFFT(frames)
-
-        freq_numpy = numpy.array(freq)
-        ampl_numpy = numpy.array(amp)
-
-        
-
-
-        return [freq_numpy,ampl_numpy]
-    
-
+        return [frequencies,fft_spectrum]
 
     def genSound(self,freq,durationIn):
         p = pyaudio.PyAudio()
@@ -195,3 +199,11 @@ class SoundIO:
         p.terminate()
 
         print("finish")
+
+    def process(self,device_index = 1):
+        self.__Record(device_index=device_index)
+        frequency_numpy,amplitude_numpy = self.__GetFFT()
+
+        frequencyOutput,amplitudeOutput = self.__Filter(frequency_numpy,amplitude_numpy)
+
+        return [frequencyOutput,amplitudeOutput]

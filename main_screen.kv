@@ -1,3 +1,5 @@
+# :import WebView kivy.uix.webview.WebView
+
 <GridLayout>:
     canvas.before:
         Color:
@@ -34,6 +36,7 @@
     dataset_btnstart:id_dataset_btnstart
     dataset_inputdatacount:dataset_inputdatacount
     dataset_switchsavedata:dataset_switchsavedata 
+    dataset_switchautotrain:dataset_switchautotrain
 
     sa_btnrecord:sa_btnrecord
     sa_btnplaylastsound:sa_btnplaylastsound
@@ -43,6 +46,7 @@
     sa_filter_inputamp:sa_filter_inputamp
     sa_btnsavedata:sa_btnsavedata
     sa_btnloaddata:sa_btnloaddata
+    sa_filter_inputspace:sa_filter_inputspace
 
     train_btntrain:train_btntrain
     train_inputclasscount:train_inputclasscount
@@ -50,25 +54,31 @@
     train_inputepoch:train_inputepoch
 
     predict_btnpredict:predict_btnpredict
-    predict_textoutput:predict_textoutput
-    predict_InputloopPredict:predict_InputloopPredict
+    predict_class:predict_class
+    predict_maxconfi:predict_maxconfi
+    predict_swautopredict:predict_swautopredict
 
     model_model:model_model
-    model_accuracy:model_accuracy
+    model_testaccuracy:model_testaccuracy
+    model_testloss:model_testloss
 
-    file_btnscandataset:filezone_btnscandataset
+    file_btnscandataset:file_btnscandataset
     file_filecount:filezone_filecount
     file_traincount:file_traincount
     file_validcount:file_validcount
     file_testcount:file_testcount
     file_classcount:file_classcount
     file_inputtrain_persen:file_inputtrain_persen
+    file_btnopenfolder:file_btnopenfolder
 
     graph_space:graph_space
+    graph_spaceOne:graph_spaceOne
     graph_inputMinScaleX:graph_inputMinScaleX
     graph_inputMaxScaleX:graph_inputMaxScaleX
     graph_inputMinScaleY:graph_inputMinScaleY
     graph_inputMaxScaleY:graph_inputMaxScaleY
+
+    output:output
 
 
     default_font_size: 24
@@ -92,56 +102,54 @@
                 BoxLayout:
                     orientation:"vertical"
                     padding:[20,20]
-                    
 
-                    GridLayout:
-                        # orientation:"lr-tb"
-                        cols:2
-                        Label:
-                            text: "ClassName"
-                            size_hint: None, 1.0
-                            size:200,1
-                        TextInput:
-                            id:dataset_inputclassname
-                            multiline:False
-                            size_hint:0.1,1
-                            text_align:"center" 
-
-                    GridLayout:
-                        # orientation:"lr-tb"
-                        cols:2
-                        Label:
-                            text: "DataCount"
-                            size_hint: None, 1.0
-                            size:200,1
-                        TextInput:
-                            id:dataset_inputdatacount
-                            multiline:False
-                            size_hint:0.1,1
-                            text_align:"center" 
-
-
-                    AnchorLayout:
-                        anchor_x:"center"
-                        anchor_y:"center"
-
+                    BoxLayout:
                         Label:
                             id:dataset_textoutput
-                            text:'text output'
+                            text:'DataSet'
+                            font_size:20
                     
-                    Button:
-                        id:id_dataset_btnstart
-                        text:"RecordData"
-                        # on_press:root.onRecord()
-                        background_color:1.0,0.2,0.2,1
 
-                    GridLayout:
-                        cols:2  
+                    BoxLayout:    
                         Label:
-                            text:"save file"
-                        Switch:
-                            id:dataset_switchsavedata
-                            active:False
+                            text: "ClassName"
+                        TextInput:
+                            id:dataset_inputclassname
+                            font_size:35
+
+                    BoxLayout:
+                        Label:
+                            text: "DataCount"
+                        TextInput:
+                            id:dataset_inputdatacount
+                            font_size:35
+
+       
+                    BoxLayout:
+                        AnchorLayout:
+                            anchor_x: 'center'
+                            anchor_y: 'center'
+
+                            Button:
+                                id:id_dataset_btnstart
+                                text:"RecordData"
+                                background_color:0,0.8,1,1
+                                size_hint_x:None
+                                width:200
+
+                    BoxLayout: 
+                        BoxLayout:
+                            Label:
+                                text:"SaveFile"
+                            Switch:
+                                id:dataset_switchsavedata
+                                active:False
+                        BoxLayout:
+                            Label:
+                                text:"AutoTrain"
+                            Switch:
+                                id:dataset_switchautotrain
+                                active:False
 
     
                     
@@ -152,9 +160,7 @@
                     orientation:"vertical"
                     padding:[20,20]
 
-                    GridLayout:
-                        cols:2
-                        
+                    BoxLayout:
                         Button:
                             id:sa_btnrecord
                             text:"Record"
@@ -162,14 +168,9 @@
                             id:sa_btnplaylastsound
                             text:"Play"
                     
-                    GridLayout:
-                        cols:1
-                        Label:
-                            text:'GenerateSound'
-                        
-                        GridLayout:
-                            cols:4
-
+                    BoxLayout:
+                        orientation:'vertical'                    
+                        BoxLayout:
                             Label:
                                 text:"Frequency"
                             TextInput:
@@ -179,25 +180,29 @@
                                 text:"Duration"
                             TextInput:
                                 id:sa_gensound_sec
-                        Button:
-                            id:sa_gensound_btnplay
-                            text:"Play Gen Sound"
-                    GridLayout:
-                        cols:1
-
-                        GridLayout:
-                            cols:2
-                            size_hint_y:None
-                            height:40
-
+                            Button:
+                                id:sa_gensound_btnplay
+                                text:"GenSound"
+                    BoxLayout:
+                        orientation:'vertical'
+                        BoxLayout:
                             Label:
                                 text:"Filter Frequency (dB) :"
                             TextInput:
                                 id:sa_filter_inputamp
                                 multiline:False
+                                font_size:20
 
-                    GridLayout:
-                        cols:2
+                        BoxLayout:
+                            Label:
+                                text:"SPACE :"
+                            TextInput:
+                                text:"50"
+                                id:sa_filter_inputspace
+                                multiline:False
+                                font_size:20
+
+                    BoxLayout:
                         Button:
                             id:sa_btnsavedata
                             text:"Save To JSON"
@@ -205,51 +210,56 @@
                             id:sa_btnloaddata
                             text:"Load To Data"
 
-                    
 
 
-                
-
-
-            #FileZone-Model Status            
-            GridLayout:
-                cols:2
-                size_hint:1.0,0.3
+            #FileZone            
+            BoxLayout:
                 #filezone
                 BoxLayout:
                     orientation:"vertical"
                     BoxLayout:
-                        orientation:"horizontal"
-                        size_hint:None,None
-                        height:40
-                        width:250
-                        Label:
-                            text:"file in dataset folder : "
-                            size_hint_x:None
-                            width: self.texture_size[0] + 150
-                            markup:True
-                            shorten: True
-                            xalign:"center"
-                        Label:
-                            id:filezone_filecount
-                            text:"[b]None[/b]"
-                            xalign:"left"
-                            markup:True
-                            shorten: True
-                            font_size:20
-                            color:0,0.5,0.5,1
-                            size_hint_x: None
-                            width:50
+                        BoxLayout:
+                            padding:[20,20]
+                            BoxLayout:
+                                orientation:'vertical'
+                                Label:
+                                    text:"datafile in dataset folder"
+                                    # size_hint_x:None
+                                    # width: self.texture_size[0]
+                                    markup:True
+                                    shorten: True
+                                    xalign:"center"
+                                Label:
+                                    padding:[20,5]
+                                    id:filezone_filecount
+                                    text:"[b]None[/b]"
+                                    xalign:'center'
+                                    markup:True
+                                    shorten: True
+                                    font_size:40
+                                    color:1,1,0,1
+                                    size_hint_x: 1.0
+                            BoxLayout:
+                                padding:[50,50]
+                                Button:
+                                    id:file_btnopenfolder
+                                    text:"OpenFolder"
+                        BoxLayout:
+                            BoxLayout:
+                                Label:
+                                    id:output
+                                    text:"Output"
+                                    markup:True
+                                    shorten: True
+                                    font_size:15
+                                    
 
                     BoxLayout:
-                        orientation:"horizontal"
                         BoxLayout:
-                            orientation:"horizontal"
-                            GridLayout:
-                                cols:2
-
+                            orientation:'vertical'
+                            BoxLayout:
                                 Label:
-                                    text:"train set : "
+                                    text:"Train Set : "
                                     markup:True
                                     shorten: True
 
@@ -258,9 +268,11 @@
                                     text:"None"
                                     markup:True
                                     shorten: True
-
+                                    font_size:25
+                                    color:0,1,0,1
+                            BoxLayout:
                                 Label:
-                                    text:"valid set : "
+                                    text:"Valid Set : "
                                     markup:True
                                     shorten: True
 
@@ -269,9 +281,11 @@
                                     text:"None"
                                     markup:True
                                     shorten: True
-
+                                    font_size:25
+                                    color:0,1,0,1
+                            BoxLayout:
                                 Label:
-                                    text:"test set : "
+                                    text:"Test Set : "
                                     markup:True
                                     shorten: True
 
@@ -280,7 +294,9 @@
                                     text:"None"
                                     markup:True
                                     shorten: True
-
+                                    font_size:25
+                                    color:0,1,0,1
+                            BoxLayout:
                                 Label:
                                     text:"class count : "
                                     markup:True
@@ -291,58 +307,29 @@
                                     text:"None"
                                     markup:True
                                     shorten: True
+                                    font_size:25
+                                    color:0,1,0,1
 
 
 
+                        BoxLayout:
+                            orientation:"vertical"
                             BoxLayout:
-                                orientation:"vertical"
-                                BoxLayout:
-                                    size_hint_y:None
-                                    height:30
-                                    Label:
-                                        text:"train (%)"
-                                BoxLayout:
-                                    size_hint_y:None
-                                    height:30
-                                    TextInput:
-                                        id:file_inputtrain_persen
-                                        text:""
-                                
-                                Button:
-                                    id:filezone_btnscandataset
-                                    padding:[20,20]
-                                    text:"Process Dataset"
-                                    size_hint:1.0,0.2
-                                    # on_release: app.changeto_filemanagerScreen()
+                                size_hint_y:None
+                                height:50
+                                Label:
+                                    text:"split train set (%)"
+                            
+                                TextInput:
+                                    id:file_inputtrain_persen
+                                    font_size:30
+                            
+                            Button:
+                                id:file_btnscandataset
+                                text:"Process Dataset"
+                                size_hint:1.0,1.0
+                                # on_release: app.changeto_filemanagerScreen()
                 
-                #model status
-                BoxLayout:
-                    orientation:"vertical"                
-
-                    BoxLayout:
-                        orientation:"horizontal"
-                        Label:
-                            color:0.5,0.5,1,1
-                            text:"Model :"
-                            font_size:25
-                        Label:
-                            id:model_model
-                            xalign:"center"
-                            color:0,1,0,1
-                            text:"NULL"
-                            font_size:25
-
-                    BoxLayout:
-                        orientation:"horizontal"
-                        Label:
-                            color:0.5,0.5,1,1
-                            text:"Accuracy : "
-                            font_size:25
-                        Label:
-                            id:model_accuracy
-                            color:0,1,0,1
-                            text:"NULL"
-                            font_size:25
 
 
             
@@ -355,14 +342,7 @@
                     orientation:"vertical"
                     padding:[20,20]
 
-                    AnchorLayout:
-                        anchor_x: 'center'
-                        anchor_y: 'center'
-                        Label:
-                            text:"TrainZone"
-
-                    GridLayout:
-                        cols:2
+                    BoxLayout:
                         size_hint:(1.0,0.6)
                         padding:[0,5]
                         Label:
@@ -371,8 +351,8 @@
                             id:train_inputclasscount
                             text:""
                             multiline:False
-                    GridLayout:
-                        cols:2
+                            font_size:30
+                    BoxLayout:
                         size_hint:(1.0,0.6)
                         Label:
                             text:"Epoch : "
@@ -380,6 +360,7 @@
                             id:train_inputepoch
                             text:""
                             multiline:False
+                            font_size:30
 
             
 
@@ -393,39 +374,100 @@
                         text:"Train"
 
                 #Predict5
-                GridLayout:
-                    cols:1
-                    rows:3
+                BoxLayout:
+                    orientation:'vertical'
                     padding:[20,20]
 
-                    AnchorLayout:
-                        anchor_x: 'center'
-                        anchor_y: 'center'
-                        Label:
-                            text:"PredictZone"
+                    #model status
+                    BoxLayout:
+                        orientation:"vertical"   
 
-                    AnchorLayout:
-                        anchor_x: 'center'
-                        anchor_y: 'center'
                         size_hint:1.0,None
-                        height: 200
-                        Label:
-                            id:predict_textoutput
-                            text:"Predict Text Output"
-                            markup:True
-                            font_size:25
-                            color:1,0,0,1
-                        
-                    
-                    GridLayout:
-                        cols:2
-                        Button:
-                            id:predict_btnpredict
-                            text:"One Predict"
+                        height:150             
 
-                        TextInput:
-                            id:predict_InputloopPredict
-                            text:""
+                        BoxLayout:
+                            orientation:"horizontal"
+                            Label:
+                                color:0.5,0.5,1,1
+                                text:"Model :"
+                                font_size:25
+                            Label:
+                                id:model_model
+                                xalign:"center"
+                                color:1,1,0,1
+                                text:"Model"
+                                font_size:20
+                                markup:True
+
+                        BoxLayout:
+                            orientation:"horizontal"
+                            Label:
+                                color:0.5,0.5,1,1
+                                text:"Test Accuracy : "
+                                font_size:25
+                            Label:
+                                id:model_testaccuracy
+                                color:1,1,0,1
+                                text:"NULL"
+                                font_size:35
+                        BoxLayout:
+                            orientation:"horizontal"
+                            Label:
+                                color:0.5,0.5,1,1
+                                text:"Test Loss : "
+                                font_size:25
+                            Label:
+                                id:model_testloss
+                                color:1,1,0,1
+                                text:"NULL"
+                                font_size:35
+
+                    BoxLayout:
+
+                        BoxLayout:
+                            orientation:'vertical'
+
+                            Button:
+                                padding:[20,20]
+                                id:predict_btnpredict
+                                text:"Predict"
+                                background_color:0,1.0,0.8,1
+                            
+                            BoxLayout:
+                                Label:
+                                    text:"Auto Predict"
+                                Switch:
+                                    id:predict_swautopredict
+                                    text:"dsd"
+                                
+                        
+                        BoxLayout:
+                            orientation:'vertical'
+                            padding:[20,20]
+                            BoxLayout:
+                                Label:
+                                    text:"Class :"
+                                    font_size:20
+                                Label:
+                                    id:predict_class
+                                    text:"NULL"
+                                    markup:True
+                                    font_size:25
+                                    color:0,0.5,1,1
+                            BoxLayout:
+                                Label:
+                                    text:"Confi :"
+                                    font_size:20
+                                Label:
+                                    id:predict_maxconfi
+                                    text:"NULL"
+                                    markup:True
+                                    font_size:25
+                                    color:0,0.5,1,1
+                                    
+                        
+       
+                        
 
         
         
@@ -468,12 +510,41 @@
                     id:graph_space
                     orientation: 'vertical'
                 
-            
             BoxLayout:
+                size_hint_y:None
+                height:40
+                
+                BoxLayout:
+                    BoxLayout:
+                        BoxLayout:
+                            size_hint:None,1.0
+                            width:120
+                            BoxLayout:
+                                padding:[20,20]
+                                canvas.before:
+                                    Color:
+                                        rgba: 1, 1, 0, 1
+                                    Rectangle:
+                                        pos: self.pos
+                                        size: self.size
+                            Label:
+                                text:'class-0'
+                        
+                        BoxLayout:
+                            size_hint:None,1.0
+                            width:120
+                            BoxLayout:
+                                padding:[20,20]
+                                canvas.before:
+                                    Color:
+                                        rgba: 0, 1, 1, 1
+                                    Rectangle:
+                                        pos: self.pos
+                                        size: self.size
+                            Label:
+                                text:'class-1'
+            BoxLayout:
+                id:graph_spaceOne
                 orientation:"vertical"
 
-                Label:
-                    text:""
-                Label:
-                    text:""
-            
+                
