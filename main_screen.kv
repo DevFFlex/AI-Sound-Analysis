@@ -1,4 +1,3 @@
-# :import WebView kivy.uix.webview.WebView
 
 <GridLayout>:
     canvas.before:
@@ -8,13 +7,13 @@
             width: 2
             rectangle: (self.x, self.y, self.width, self.height)
 
-<BoxLayout>:
-    canvas.before:
-        Color:
-            rgba: 1, 1, 1, 1
-        Line:
-            width: 1
-            rectangle: (self.x, self.y, self.width, self.height)
+# <BoxLayout>:
+#     canvas.before:
+#         Color:
+#             rgba: 1, 1, 1, 1
+#         Line:
+#             width: 1
+#             rectangle: (self.x, self.y, self.width, self.height)
 <TextInput>:
     halign:"center"
     valign:"middle"
@@ -49,9 +48,10 @@
     sa_filter_inputspace:sa_filter_inputspace
 
     train_btntrain:train_btntrain
-    train_inputclasscount:train_inputclasscount
     train_textoutput:train_textoutput
     train_inputepoch:train_inputepoch
+    train_btntestmodel:train_btntestmodel
+    train_btnsavemodel:train_btnsavemodel
 
     predict_btnpredict:predict_btnpredict
     predict_class:predict_class
@@ -62,7 +62,7 @@
     model_testaccuracy:model_testaccuracy
     model_testloss:model_testloss
 
-    file_btnscandataset:file_btnscandataset
+    # file_btnscandataset:file_btnscandataset
     file_filecount:filezone_filecount
     file_traincount:file_traincount
     file_validcount:file_validcount
@@ -77,6 +77,8 @@
     graph_inputMaxScaleX:graph_inputMaxScaleX
     graph_inputMinScaleY:graph_inputMinScaleY
     graph_inputMaxScaleY:graph_inputMaxScaleY
+    graph_labelclasszero:graph_labelclasszero
+    graph_labelclassone:graph_labelclassone
 
     output:output
 
@@ -314,20 +316,9 @@
 
                         BoxLayout:
                             orientation:"vertical"
-                            BoxLayout:
-                                size_hint_y:None
-                                height:50
-                                Label:
-                                    text:"split train set (%)"
+                            padding:[20,20]
+                                 
                             
-                                TextInput:
-                                    id:file_inputtrain_persen
-                                    font_size:30
-                            
-                            Button:
-                                id:file_btnscandataset
-                                text:"Process Dataset"
-                                size_hint:1.0,1.0
                                 # on_release: app.changeto_filemanagerScreen()
                 
 
@@ -343,24 +334,32 @@
                     padding:[20,20]
 
                     BoxLayout:
-                        size_hint:(1.0,0.6)
-                        padding:[0,5]
+                        size_hint_y:None
+                        height:50
                         Label:
-                            text:"ClassCount : "
+                            text:"split train set (%)"
+                    
                         TextInput:
-                            id:train_inputclasscount
-                            text:""
-                            multiline:False
+                            id:file_inputtrain_persen
                             font_size:30
-                    BoxLayout:
-                        size_hint:(1.0,0.6)
                         Label:
-                            text:"Epoch : "
+                            # id:file_btnscandataset
+                            # text:"Process Dataset"
+                            size_hint:1.0,1.0
+
+                    BoxLayout:
+                        size_hint_y:None
+                        height:50
+                        Label:
+                            text:"Epoch"
+                    
                         TextInput:
                             id:train_inputepoch
-                            text:""
-                            multiline:False
                             font_size:30
+                        Label:
+                            text:""
+                            size_hint:1.0,1.0
+    
 
             
 
@@ -369,9 +368,16 @@
                         text:"train text output"
                         font_size:25
                     
-                    Button:
-                        id:train_btntrain
-                        text:"Train"
+                    BoxLayout:
+                        Button:
+                            id:train_btntrain
+                            text:"Train"
+                        Button:
+                            id:train_btntestmodel
+                            text:"TestModel"
+                        Button:
+                            id:train_btnsavemodel
+                            text:"SaveModel"
 
                 #Predict5
                 BoxLayout:
@@ -479,6 +485,7 @@
             orientation:"vertical"
             BoxLayout:
                 orientation:"vertical"
+                padding:[30,30]
                 BoxLayout:
                     size_hint_y:None
                     height:40
@@ -514,11 +521,16 @@
                 size_hint_y:None
                 height:40
                 
-                BoxLayout:
+                AnchorLayout:
+                    anchor_x:"center"
                     BoxLayout:
+                        size_hint_x:None
+                        width:250
                         BoxLayout:
                             size_hint:None,1.0
                             width:120
+                            Label:
+                                text:'class-0'
                             BoxLayout:
                                 padding:[20,20]
                                 canvas.before:
@@ -527,12 +539,18 @@
                                     Rectangle:
                                         pos: self.pos
                                         size: self.size
-                            Label:
-                                text:'class-0'
+                                Label:
+                                    id:graph_labelclasszero
+                                    text:"0"
+                                    font_size:20
+                                    color:0,0,0,1
+                            
                         
                         BoxLayout:
                             size_hint:None,1.0
                             width:120
+                            Label:
+                                text:'class-1'
                             BoxLayout:
                                 padding:[20,20]
                                 canvas.before:
@@ -541,10 +559,15 @@
                                     Rectangle:
                                         pos: self.pos
                                         size: self.size
-                            Label:
-                                text:'class-1'
+                                Label:
+                                    id:graph_labelclassone
+                                    text:"0"
+                                    font_size:20
+                                    color:0,0,0,1
+                            
             BoxLayout:
                 id:graph_spaceOne
                 orientation:"vertical"
+                padding:[30,30]
 
                 

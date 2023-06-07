@@ -10,22 +10,21 @@ import librosa
 import os
 import json
 from _data_manager import DataManager
+import easygui
 
 class AI(DataManager):
 
     def __init__(self,app):
-        super().__init__()
+        super().__init__(app)
         self.__model = None
-        self.__classcount = None
-        self.__trainCallbackFunction = app.trainCallbackFunction
         
     def isModel(self):
         return self.__model         
 
 
-    def train(self,x_train,y_train,x_val,y_val,class_count,epochsIn = 50):
+    def train(self,x_train,y_train,x_val,y_val,class_count,epochsIn = 50,trainCallbackFunction = None):
         self.__classcount = class_count
-        
+
         self.__model = None
         self.__model = keras.models.Sequential()
  
@@ -40,7 +39,8 @@ class AI(DataManager):
         y_train_categorical = keras.utils.to_categorical(y_train, self.__classcount)
         y_valid_categorical = keras.utils.to_categorical(y_val,self.__classcount)
 
-        self.__model.fit(x_train, y_train_categorical, epochs=epochsIn,validation_data=(x_val,y_valid_categorical),verbose=2, callbacks=[keras.callbacks.LambdaCallback(on_epoch_end=self.__trainCallbackFunction)])
+        callfunc = [keras.callbacks.LambdaCallback(on_epoch_end=trainCallbackFunction)] if trainCallbackFunction != None else None
+        self.__model.fit(x_train, y_train_categorical, epochs=epochsIn,validation_data=(x_val,y_valid_categorical),verbose=2, callbacks=callfunc)
 
 
         return self.__model
@@ -72,10 +72,15 @@ class AI(DataManager):
 
 
         return (predicted_class,confidence)
+    
+    def saveModel(self):
+        name = easygui.enterbox("Enter your Model name:", title="Model Name")
 
-    def getClassCount(self):
-        return self.__classcount
-            
+        if name == None:
+            return
+
+        self.__model.save(f"{name}.h5")
+        
 
     # sequential model
     # def get_SequentialModel(self,x_train,learning_rate = 0.01):

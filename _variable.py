@@ -1,4 +1,3 @@
-import kivy.garden.graph
 import numpy
 
 class DataObject:
@@ -27,13 +26,13 @@ class DataObject:
         print(f"y_test = {self.y_test.shape}")
 
     def isTrain(self):
-        return (numpy.any(self.x_train) and numpy.any(self.y_train))
+        return (numpy.any(self.x_train))
     
     def isValid(self):
-        return (numpy.any(self.x_valid) and numpy.any(self.y_valid))
+        return (numpy.any(self.x_valid))
     
     def isTest(self):
-        return (numpy.any(self.x_test) and numpy.any(self.y_valid))
+        return (numpy.any(self.x_test))
     
     def isData(self):
         return (self.isTrain() and self.isValid() and self.isTest())
@@ -42,6 +41,12 @@ class GraphHistory:
 
     def __init__(self) -> None:
         self.__MAX_HIS = 1
+        self.XLABEL = 'Frequency (Hz)'
+        self.YLABEL = 'Amplitude (db)'
+        self.GRAPH_X_RANGE = [0,3000]
+        self.GRAPH_Y_RANGE = [0,100]
+
+
         self.GRAPH_COLOR = [
             # [1,0,0,1],
             [1,0,0,1],
@@ -68,6 +73,25 @@ class GraphHistory:
     
     def getGraphPoint(self):
         return self.__graph_point
+    
+    def graphInputOption(self,graph_inputMinScaleX,graph_inputMaxScaleX,graph_inputMinScaleY,graph_inputMaxScaleY):
+        xminrange_text = graph_inputMinScaleX.text
+        xmaxrange_text = graph_inputMaxScaleX.text
+        yminrange_text = graph_inputMinScaleY.text
+        ymaxrange_text = graph_inputMaxScaleY.text
+
+        if xminrange_text != "" and xminrange_text.isdigit():
+            self.GRAPH_X_RANGE[0] = int(xminrange_text)
+        
+        if xmaxrange_text != "" and xmaxrange_text.isdigit():
+            self.GRAPH_X_RANGE[1] = int(xmaxrange_text)
+        
+        if yminrange_text != "" and yminrange_text.isdigit():
+            self.GRAPH_Y_RANGE[0] = int(yminrange_text)
+        
+        if ymaxrange_text != "" and ymaxrange_text.isdigit():
+            self.GRAPH_Y_RANGE[1] = int(ymaxrange_text)
+        
 
     
 

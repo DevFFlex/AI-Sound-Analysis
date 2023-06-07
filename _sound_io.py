@@ -38,6 +38,12 @@ class SoundIO:
         if not os.path.isdir(os.path.join(os.getcwd(),"audio_output")):
             os.mkdir("audio_output")
 
+        print(type(self.list_audio_devices()))
+        print(self.list_audio_devices())
+
+        for x in self.list_audio_devices():
+            print(f"index {x['index']}\tname  {x['name']}")
+
     def list_audio_devices(self):
         audio = pyaudio.PyAudio()
         device_info = audio.get_host_api_info_by_index(0)
@@ -149,11 +155,11 @@ class SoundIO:
             if i > 40000:
                 break
 
-        # frequency_np = np.array(frequency_list)
-        # amplitude_np = np.array(amplitude_list)
+        frequency_np = np.array(frequency_list)
+        amplitude_np = np.array(amplitude_list)
 
         # return [frequency_np,amplitude_np]
-        return [frequency_list,amplitude_list]
+        return [frequency_np,amplitude_np]
 
 
     
@@ -205,5 +211,6 @@ class SoundIO:
         frequency_numpy,amplitude_numpy = self.__GetFFT()
 
         frequencyOutput,amplitudeOutput = self.__Filter(frequency_numpy,amplitude_numpy)
+
 
         return [frequencyOutput,amplitudeOutput]
