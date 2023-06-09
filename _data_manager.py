@@ -11,8 +11,9 @@ from sklearn.model_selection import train_test_split
 
 class DataManager:
 
-    def __init__(self,app):
+    def __init__(self,app,variable):
         self.__app = app
+        self.__var = variable
 
         self.DATA_FOLDERNAME = 'dataset'
 
@@ -43,11 +44,13 @@ class DataManager:
         t1.start()
 
 
+
     def __filescaner(self):
         self.DATA_CLASSCOUNT = self.__getDataClassCount()
-        self.__app.avgGraphUpdate()
+        if self.__app:
+            self.__app.avgGraphUpdate()
 
-        while True:
+        while self.__var.app_running:
             
             try:
                 self.createBaseResource()
@@ -56,7 +59,7 @@ class DataManager:
 
                 if self.__filecountnow != self.DATA_FILECOUNT:
                     self.__filecountnow = self.DATA_FILECOUNT
-                    if self.DATA_FILECOUNT != 0:
+                    if self.DATA_FILECOUNT != 0 and self.__app:
                         self.__app.avgGraphUpdate()
                     
                     self.DATA_CLASSCOUNT = self.__getDataClassCount()
@@ -98,6 +101,7 @@ class DataManager:
                 file_path = os.path.join(self.DIRECTORY_DATASET_PATH, filename)
                 with open(file_path, 'r') as json_file:
                     data = json.load(json_file)
+
                     amplitude = data['amplitude']
                     classname = data['classname']
 
@@ -240,3 +244,49 @@ class DataManager:
         return os.path.isdir(path)
     
 
+    def json2csv(self):
+
+        _list = []
+        _columnlist = []
+
+        first = True
+        for filename in os.listdir(self.DIRECTORY_DATASET_PATH):
+            if filename.endswith('.json'):
+                if filename == self.INFO_FILENAME:
+                    continue
+                file_path = os.path.join(self.DIRECTORY_DATASET_PATH, filename)
+                with open(file_path, 'r') as json_file:
+                    data = json.load(json_file)
+
+                    if first:
+                        first = False
+                        _column = data['frequency']
+                        for x in _column:
+                            _columnlist.append(x)
+                        _columnlist.append('class')
+
+
+                    amplitude = data['amplitude']
+                    classname = data['classname']
+
+                    amplist = []
+                    for x in amplitude:
+                        amplist.append(x)
+                    amplist.append(classname)
+
+
+
+                    _list.append([amplitude,classname])
+
+        # list_numpy = numpy.array(_list)
+
+        print(f'column len = {len(_columnlist)}')
+        print(f'columndata len = {len(_list)}')
+        # print(f'list_numpy shape = {list_numpy.shape}')
+
+        df = pd.DataFrame(_list, columns=['data','classname'])
+        df.to_csv('dataset.csv', index=False)
+
+
+        # print(df)
+    

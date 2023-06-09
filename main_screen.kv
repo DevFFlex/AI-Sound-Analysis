@@ -57,6 +57,7 @@
     predict_class:predict_class
     predict_maxconfi:predict_maxconfi
     predict_swautopredict:predict_swautopredict
+    predict_btnpredictmodel_:predict_btnpredictmodel_
 
     model_model:model_model
     model_testaccuracy:model_testaccuracy
@@ -433,11 +434,17 @@
                         BoxLayout:
                             orientation:'vertical'
 
-                            Button:
-                                padding:[20,20]
-                                id:predict_btnpredict
-                                text:"Predict"
-                                background_color:0,1.0,0.8,1
+                            BoxLayout:
+                                Button:
+                                    padding:[20,20]
+                                    id:predict_btnpredict
+                                    text:"Predict"
+                                    background_color:0,1.0,0.8,1
+                                Button:
+                                    padding:[20,20]
+                                    id:predict_btnpredictmodel_
+                                    text:"Classification"
+                                    background_color:0,1.0,0.8,1
                             
                             BoxLayout:
                                 Label:

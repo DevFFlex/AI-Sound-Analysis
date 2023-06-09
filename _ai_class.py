@@ -11,11 +11,18 @@ import os
 import json
 from _data_manager import DataManager
 import easygui
+import numpy as np
+from sklearn import datasets
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+import ast
+import time
+import random
 
 class AI(DataManager):
 
-    def __init__(self,app):
-        super().__init__(app)
+    def __init__(self,app,variable):
+        super().__init__(app,variable)
         self.__model = None
         
     def isModel(self):
@@ -42,7 +49,6 @@ class AI(DataManager):
         callfunc = [keras.callbacks.LambdaCallback(on_epoch_end=trainCallbackFunction)] if trainCallbackFunction != None else None
         self.__model.fit(x_train, y_train_categorical, epochs=epochsIn,validation_data=(x_val,y_valid_categorical),verbose=2, callbacks=callfunc)
 
-
         return self.__model
     
     def getAccuracy(self,x_test,y_test):
@@ -60,14 +66,10 @@ class AI(DataManager):
         else:
             x_input = amplitude
 
-
-        # ทำนาย (predict)
         y_pred = self.__model.predict(x_input)
 
-        # # หาคลาสที่มีความน่าจะเป็นสูงสุด
         predicted_class = numpy.argmax(y_pred)
 
-        # # ค่า confidence คือความน่าจะเป็นสูงสุด
         confidence = y_pred[0, predicted_class]
 
 
@@ -81,6 +83,47 @@ class AI(DataManager):
 
         self.__model.save(f"{name}.h5")
         
+
+    def predict_LogisticRegression(self,X_test):
+        filename = 'dataset.csv'
+        if os.path.isfile(filename):
+            return
+        
+        df = pd.read_csv(filename)
+
+        X_in,y = df['data'].tolist(),df['classname']
+        X_list = []
+        for x in X_in:
+            X_list.append(ast.literal_eval(x))
+        
+        X = numpy.array(X_list)
+        y = numpy.array(y)
+
+        # X_train,X_testSP,y_train,y_testSP = train_test_split(X,y,test_size = 0.5,random_state= random.randint(1,500))
+
+        # print(X_train.shape)
+        # print(y_train.shape)
+        # print(X_test.shape)
+        # print(y_test.shape)
+
+        model = LogisticRegression(solver='lbfgs',max_iter=5000)
+
+        # model.fit(X_train,y_train)
+        model.fit(X,y)
+
+
+        pred = model.predict(X_test)
+
+        # tn,fp,fn,tp = metrics.confusion_matrix(y_testSP,pred).ravel()
+
+
+        # accuracy = metrics.accuracy_score(y_testSP,pred)
+        confidence = model.predict_proba(X_test)
+        # print(f'score = {model.score(X_test,y_test)}')
+        # print(f'accuracy = {metrics.accuracy_score(y_test,pred)}')
+
+
+        return pred,confidence
 
     # sequential model
     # def get_SequentialModel(self,x_train,learning_rate = 0.01):

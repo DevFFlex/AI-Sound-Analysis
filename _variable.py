@@ -40,6 +40,7 @@ class DataObject:
 class GraphHistory:
 
     def __init__(self) -> None:
+        
         self.__MAX_HIS = 1
         self.XLABEL = 'Frequency (Hz)'
         self.YLABEL = 'Amplitude (db)'
@@ -98,6 +99,8 @@ class GraphHistory:
 
 class Variable:
     def __init__(self) -> None:
+        self.app_running = True
+
         self.MODEL = None
         self.TestAccuracy = None
         self.TestLoss = None
