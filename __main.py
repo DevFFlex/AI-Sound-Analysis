@@ -1,8 +1,3 @@
-# from _data_manager import DataManager
-from _sound_io import SoundIO
-from _variable import Variable
-from _ai_class import AI
-
 import io
 import numpy
 import threading
@@ -39,10 +34,8 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.uix.modalview import ModalView
 
-from file.GraphManage import GraphManage
-from file.widgetAction import ButtonCoolDown, InputTextWidget
-from main_screen import MainScreen
-from file_manager import FileManagerScreen
+from file.main_screen import MainScreen
+from file.file_manager import FileManagerScreen
 
 
 class ScreenManagerApp(App):
@@ -54,8 +47,8 @@ class ScreenManagerApp(App):
         Window.minimum_height = 600
         Window.fullscreen = 'auto'
 
-        Builder.load_file('main_screen.kv')
-        Builder.load_file('file_manager.kv')
+        Builder.load_file('file/main_screen.kv')
+        Builder.load_file('file/file_manager.kv')
 
         sm = ScreenManager()
         sm.add_widget(MainScreen(screen_name='MainScreen'))

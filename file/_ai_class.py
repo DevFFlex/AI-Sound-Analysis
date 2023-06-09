@@ -9,7 +9,6 @@ import soundfile as sf
 import librosa
 import os
 import json
-from _data_manager import DataManager
 import easygui
 import numpy as np
 from sklearn import datasets
@@ -18,6 +17,7 @@ from sklearn import metrics
 import ast
 import time
 import random
+from file._data_manager import DataManager
 
 class AI(DataManager):
 

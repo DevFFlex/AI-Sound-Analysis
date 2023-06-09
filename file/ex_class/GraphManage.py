@@ -2,7 +2,8 @@ import threading
 import numpy
 from kivy.clock import Clock
 from kivy.garden.graph import Graph, MeshLinePlot,LinePlot
-from _variable import Variable
+
+from file._variable import Variable
 
 
 
@@ -10,7 +11,7 @@ from _variable import Variable
 class GraphManage:
 
 
-    def __init__(self,space_field,variable) -> None:
+    def __init__(self,space_field,variable : Variable) -> None:
         self.__space_field = space_field
 
         self.__variable : Variable = variable

@@ -1,7 +1,3 @@
-from _sound_io import SoundIO
-from _variable import Variable
-from _ai_class import AI
-
 import io
 import numpy
 import threading
@@ -27,8 +23,11 @@ from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen
 from kivy.lang import Builder
 
-from file.GraphManage import GraphManage
-from file.widgetAction import ButtonCoolDown, InputTextWidget
+from file.ex_class.GraphManage import GraphManage
+from file.ex_class.widgetAction import ButtonCoolDown, InputTextWidget
+from file._sound_io import SoundIO
+from file._variable import Variable
+from file._ai_class import AI
 
 class MainScreen(Screen):
     dataset_inputclassname = ObjectProperty(None)

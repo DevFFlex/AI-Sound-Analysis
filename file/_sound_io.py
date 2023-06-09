@@ -4,7 +4,7 @@ import numpy
 import matplotlib.pyplot as plt 
 import io
 import numpy as np
-from _data_manager import DataManager
+from file._data_manager import DataManager
 import os
 import sounddevice as sd
 import soundfile as sf
