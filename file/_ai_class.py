@@ -35,7 +35,7 @@ class AI(DataManager):
         self.__model = None
         self.__model = keras.models.Sequential()
  
-        self.__model.add(keras.layers.Dense(10, activation='relu', input_shape=(x_train.shape[1],)))
+        self.__model.add(keras.layers.Dense(119, activation='relu', input_shape=(x_train.shape[1],)))
         self.__model.add(Dropout(0.2))
         self.__model.add(keras.layers.Dense(100, activation='relu'))
         self.__model.add(Dropout(0.2))

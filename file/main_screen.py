@@ -38,6 +38,7 @@ class MainScreen(Screen):
     dataset_switchautotrain = ObjectProperty(None)
 
     sa_btnrecord = ObjectProperty(None)
+    sa_btnopenfile = ObjectProperty(None)
     sa_btnplaylastsound = ObjectProperty(None)
     sa_gensound_freq = ObjectProperty(None)
     sa_gensound_sec = ObjectProperty(None)
@@ -113,23 +114,10 @@ class MainScreen(Screen):
         self.onClickThread(self.predict_btnpredictmodel_,self.onClick_PredictClassification)
         self.onClickThread(self.file_btnopenfolder,lambda btn : os.system(f"start {os.getcwd()}"))
         self.onClickThread(self.sa_btnrecord,self.soundAnalys_onClickRecord)
+        self.onClickThread(self.sa_btnopenfile,self.soundAnalys_onClickOpenFile)
         self.onClickThread(self.sa_btnplaylastsound,self.soundAnalys_onClickPlayLastRecord)
         self.onClickThread(self.sa_gensound_btnplay,self.soundAnalys_onClickPlayGenSound)
-        
 
-        # self.dataset_btnstart.bind(on_press=lambda btn: threading.Thread(target=self.dataset_onbtnstart,args=(btn,)).start())  
-        # self.train_btntrain.bind(on_press = lambda btn : threading.Thread(target=self.onClick_Train,args=(btn,)).start())
-        # self.train_btnsavemodel.bind(on_press = lambda btn : threading.Thread(target=self.onClick_SaveModel,args=(btn,)).start())
-        # self.train_btntestmodel.bind(on_press = lambda btn : threading.Thread(target=self.onClick_TestModel,args=(btn,)).start())
-        # self.predict_btnpredict.bind(on_press = lambda btn : threading.Thread(target=self.onClick_Predict,args=(btn,)).start())
-        # self.predict_btnpredictmodel_.bind(on_press = lambda btn : threading.Thread(target=self.onClick_PredictClassification,args=(btn,)).start())
-        # self.file_btnscandataset.bind(on_press = lambda btn : threading.Thread(target=self.onClick_ProcessFile,args=(btn,)).start())
-        # self.file_btnopenfolder.bind(on_press = )
-
-        # self.sa_btnrecord.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickRecord,args=(btn,)).start())
-        # self.sa_btnplaylastsound.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickPlayLastRecord,args=(btn,)).start())
-        # self.sa_gensound_btnplay.bind(on_press = lambda btn : threading.Thread(target=self.soundAnalys_onClickPlayGenSound,args=(btn,)).start())
-     
 
         self.file_inputtrain_persen.bind(text = self.onType_ProcessFile)
 
@@ -226,8 +214,6 @@ class MainScreen(Screen):
         t1 = threading.Thread(target=t_plot)
         t1.start()
 
-    
-
     def avgGraphUpdate(self):
       
         def t_function():
@@ -264,9 +250,6 @@ class MainScreen(Screen):
             
             Clock.schedule_once(lambda argment : function(argment), 0)
         threading.Thread(target=t_function).start()
-
-
-    
 
     def dataset_onbtnstart(self,btn):
 
@@ -313,7 +296,6 @@ class MainScreen(Screen):
             self.ProcessFile()
             self.Train()
             
-
     def soundAnalys_onClickRecord(self,btn):
         
         space = 50 if self.sa_filter_inputspace.text == "" or not self.sa_filter_inputspace.text.isdigit() else int(self.sa_filter_inputspace.text)
@@ -322,8 +304,16 @@ class MainScreen(Screen):
         
         self.plotGraph(freq,amp)
 
+    def soundAnalys_onClickOpenFile(self,btn):
+
+        path_wavfile = easygui.fileopenbox()
+        print(path_wavfile)
+
+        freq,amp = self.sound_io.GetFFTWithSoundFile(path_wavfile)
+        print(freq)
+
+
     def soundAnalys_onClickPlayLastRecord(self,btn):
-        threading.Thread(target=self.__threadCooldownText,args=(btn,)).start()
         self.sound_io.playSound()
 
     def soundAnalys_onClickPlayGenSound(self,btn):
@@ -356,6 +346,9 @@ class MainScreen(Screen):
 
         x_train,y_train,x_val,y_val,x_test,y_test = self.ai.getSplitDataset(train_persen)
         
+        print(x_train.shape)
+        print(y_train.shape)
+
         self.variable.DataSet.set(x_train,y_train,x_val,y_val,x_test,y_test)
 
         if not self.variable.DataSet.isData():
@@ -369,6 +362,7 @@ class MainScreen(Screen):
 
     def Train(self,epoch = 50):
         self.train_textoutput.text = 'Training....'
+
 
         self.variable.MODEL = self.ai.train(self.variable.DataSet.x_train,self.variable.DataSet.y_train,self.variable.DataSet.x_valid,self.variable.DataSet.y_valid,self.ai.DATA_CLASSCOUNT,epoch,self.trainCallbackFunction)
 
@@ -388,7 +382,6 @@ class MainScreen(Screen):
 
         self.ProcessFile(train_persen)  
         
-
     def onClick_Train(self,btn):
         
         if not self.variable.DataSet.isData():
@@ -406,7 +399,6 @@ class MainScreen(Screen):
         self.variable.TestAccuracy = accuracy
         self.variable.TestLoss = loss
         
-
     def onClick_Predict(self,btn):
         
         self.variable.status_loop_autopredict = True

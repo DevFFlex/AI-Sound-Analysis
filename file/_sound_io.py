@@ -82,6 +82,7 @@ class SoundIO:
         
         self.AUDIO = pyaudio.PyAudio()
 
+        
         stream = self.AUDIO.open(format=self.FORMAT, channels=self.CHANNELS,
                             rate=self.RATE, input=True,
                             frames_per_buffer=self.CHUNK,

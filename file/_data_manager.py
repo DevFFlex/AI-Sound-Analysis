@@ -181,16 +181,23 @@ class DataManager:
 
         if data_count_cal < 1:
             return return_null
+        
+        
 
 
         X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=test_persen_use / 100, random_state=1)
 
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=test_persen_use / 100, random_state=1)
 
-        #normalize
-        # X_train /= 1000
-        # X_val /= 1000
-        # X_test /= 1000
+        def normalize(data):
+            mean = numpy.mean(data,axis=1)
+            stddev = numpy.std(data,axis=1)
+            return (data - mean) / stddev
+        
+        # X_normalize = normalize(X_train)
+        # X_transpose = numpy.transpose(X_normalize)
+
+        # y_reshape = y_train.reshape(1,len(y_train))
 
         return [X_train,y_train,X_val,y_val,X_test,y_test]
 
