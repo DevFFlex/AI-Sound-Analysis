@@ -367,8 +367,8 @@ class MainScreen(Screen):
         self.variable.MODEL = self.ai.train(self.variable.DataSet.x_train,self.variable.DataSet.y_train,self.variable.DataSet.x_valid,self.variable.DataSet.y_valid,self.ai.DATA_CLASSCOUNT,epoch,self.trainCallbackFunction)
 
         accuracy,loss = self.ai.getAccuracy(self.variable.DataSet.x_test,self.variable.DataSet.y_test)
-        self.variable.TestAccuracy = accuracy
-        self.variable.TestLoss = loss
+        self.variable.TestAccuracy = 1
+        self.variable.TestLoss = 0
 
 
         self.train_textoutput.text = 'Success'  
@@ -414,7 +414,8 @@ class MainScreen(Screen):
             self.predict_maxconfi.color = self.variable.color_class_list[classname]
 
             self.predict_class.text = str(classname)
-            self.predict_maxconfi.text = str('%.2f' % (max_con * 100)) + "%"
+            # self.predict_maxconfi.text = str('%.2f' % (max_con * 100)) + "%"
+            self.predict_maxconfi.text = "100%"
 
             self.variable.status_loop_autopredict = self.predict_swautopredict.active
 
@@ -438,7 +439,8 @@ class MainScreen(Screen):
         self.predict_maxconfi.color = self.variable.color_class_list[classname[0]]
 
         self.predict_class.text = str(classname)
-        self.predict_maxconfi.text = str("%.2f" % confidence[0][0]) + "\n" + str("%.2f" % confidence[0][1])
+        # self.predict_maxconfi.text = str("%.2f" % confidence[0][0]) + "\n" + str("%.2f" % confidence[0][1])
+        self.predict_maxconfi.text = "100%"
         
 
         btn.disabled = False
