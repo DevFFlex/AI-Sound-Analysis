@@ -38,46 +38,10 @@ class SoundIO:
         if not os.path.isdir(os.path.join(os.getcwd(),"audio_output")):
             os.mkdir("audio_output")
 
-        print(type(self.list_audio_devices()))
-        print(self.list_audio_devices())
-
         for x in self.list_audio_devices():
             print(f"index {x['index']}\tname  {x['name']}")
 
-    def list_audio_devices(self):
-        audio = pyaudio.PyAudio()
-        device_info = audio.get_host_api_info_by_index(0)
-        device_count = device_info.get('deviceCount')
-        
-        devices = []
-        for i in range(device_count):
-            device = audio.get_device_info_by_host_api_device_index(0, i)
-            devices.append(device)
-        
-        return devices
     
-    def playSound(self):
-        data, fs = sf.read(self.SOUND_PATH, dtype='float32')
-        sd.play(data, fs)
-        sd.wait()
-    
-    def getOutputDuratoion(self):
-        wav_file = wave.open(self.SOUND_PATH, 'r')
-        signal = np.frombuffer(wav_file.readframes(-1), dtype=np.int16)
-
-        signal_length = len(signal)
-        sample_rate = wav_file.getframerate()
-        duration = signal_length / sample_rate
-
-        return duration
-
-    def __plotGraph(self,x,y,x_name,y_name):
-        plt.plot(y, x)
-        plt.xlabel(x_name)
-        plt.ylabel(y_name)
-        plt.show()
-
-
     def __Record(self,device_index = 1):
         
         self.AUDIO = pyaudio.PyAudio()
@@ -102,7 +66,6 @@ class SoundIO:
         self.AUDIO.terminate()
 
         self.__Save()
-
 
     def __Save(self):
         wave_file = wave.open(self.SOUND_PATH, 'wb')
@@ -207,7 +170,7 @@ class SoundIO:
 
         print("finish")
 
-    def process(self,device_index = 1):
+    def record_And_FFT(self,device_index = 1):
         self.__Record(device_index=device_index)
         frequency_numpy,amplitude_numpy = self.__GetFFT()
 
@@ -215,3 +178,31 @@ class SoundIO:
 
 
         return [frequencyOutput,amplitudeOutput]
+
+    def list_audio_devices(self):
+        audio = pyaudio.PyAudio()
+        device_info = audio.get_host_api_info_by_index(0)
+        device_count = device_info.get('deviceCount')
+        
+        devices = []
+        for i in range(device_count):
+            device = audio.get_device_info_by_host_api_device_index(0, i)
+            devices.append(device)
+        
+        return devices
+    
+    def playSound(self):
+        data, fs = sf.read(self.SOUND_PATH, dtype='float32')
+        sd.play(data, fs)
+        sd.wait()
+    
+    def getOutputDuratoion(self):
+        wav_file = wave.open(self.SOUND_PATH, 'r')
+        signal = np.frombuffer(wav_file.readframes(-1), dtype=np.int16)
+
+        signal_length = len(signal)
+        sample_rate = wav_file.getframerate()
+        duration = signal_length / sample_rate
+
+        return duration
+

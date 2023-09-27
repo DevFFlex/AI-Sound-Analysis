@@ -28,7 +28,6 @@ class AI(DataManager):
     def isModel(self):
         return self.__model         
 
-
     def train(self,x_train,y_train,x_val,y_val,class_count,epochsIn = 50,trainCallbackFunction = None):
         self.__classcount = class_count
 
@@ -53,10 +52,7 @@ class AI(DataManager):
     
     def getAccuracy(self,x_test,y_test):
         y_test_categorical = keras.utils.to_categorical(y_test, self.__classcount)
-
         test_loss, test_accuracy = self.__model.evaluate(x_test, y_test_categorical)
-
-
         return (test_accuracy,test_loss)
     
     def predict(self,amplitude):

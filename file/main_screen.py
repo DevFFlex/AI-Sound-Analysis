@@ -84,15 +84,14 @@ class MainScreen(Screen):
 
     output = ObjectProperty(None)
 
+    def onClickThread(self,btn,callback):
+        btn.bind(on_press = lambda btn : threading.Thread(target=callback,args=(btn,)).start())
 
-    def trainCallbackFunction(self, epoch, logs):
+    def onTrainingCallbackFunction(self, epoch, logs):
         loss = logs['loss']
         accuracy = logs['accuracy']
         
         self.train_textoutput.text = f"epoch {epoch} | Accuracy = {'%.2f' % accuracy} | loss = {'%.2f' % loss}"
-
-    def onClickThread(self,btn,callback):
-        btn.bind(on_press = lambda btn : threading.Thread(target=callback,args=(btn,)).start())   
 
     def __init__(self,screen_name, **kwargs):
         super().__init__(**kwargs)
@@ -120,13 +119,6 @@ class MainScreen(Screen):
 
 
         self.file_inputtrain_persen.bind(text = self.onType_ProcessFile)
-
-        def onDialog(btn):
-            dialog = MyDialog()
-            dialog.open()
-
-        # self.sa_btnrecord.bind(on_press=onDialog)
-
 
         def update_label(dt):
             
@@ -312,7 +304,6 @@ class MainScreen(Screen):
         freq,amp = self.sound_io.GetFFTWithSoundFile(path_wavfile)
         print(freq)
 
-
     def soundAnalys_onClickPlayLastRecord(self,btn):
         self.sound_io.playSound()
 
@@ -364,11 +355,11 @@ class MainScreen(Screen):
         self.train_textoutput.text = 'Training....'
 
 
-        self.variable.MODEL = self.ai.train(self.variable.DataSet.x_train,self.variable.DataSet.y_train,self.variable.DataSet.x_valid,self.variable.DataSet.y_valid,self.ai.DATA_CLASSCOUNT,epoch,self.trainCallbackFunction)
+        self.variable.MODEL = self.ai.train(self.variable.DataSet.x_train,self.variable.DataSet.y_train,self.variable.DataSet.x_valid,self.variable.DataSet.y_valid,self.ai.DATA_CLASSCOUNT,epoch,self.onTrainingCallbackFunction)
 
         accuracy,loss = self.ai.getAccuracy(self.variable.DataSet.x_test,self.variable.DataSet.y_test)
-        self.variable.TestAccuracy = 1
-        self.variable.TestLoss = 0
+        self.variable.TestAccuracy = accuracy
+        self.variable.TestLoss = loss
 
 
         self.train_textoutput.text = 'Success'  
@@ -414,8 +405,8 @@ class MainScreen(Screen):
             self.predict_maxconfi.color = self.variable.color_class_list[classname]
 
             self.predict_class.text = str(classname)
-            # self.predict_maxconfi.text = str('%.2f' % (max_con * 100)) + "%"
-            self.predict_maxconfi.text = "100%"
+            self.predict_maxconfi.text = str('%.2f' % (max_con * 100)) + "%"
+            # self.predict_maxconfi.text = "100%"
 
             self.variable.status_loop_autopredict = self.predict_swautopredict.active
 
